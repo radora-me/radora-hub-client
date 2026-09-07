@@ -122,7 +122,7 @@ export const ActivityTracker = ({
   const fetchActivities = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
-      const params = { limit: 60 };
+      const params = { limit: 100 };
       if (projectId) params.projectId = projectId;
       if (activeTab !== 'ALL') params.action = activeTab;
 
@@ -140,6 +140,15 @@ export const ActivityTracker = ({
 
   useEffect(() => {
     fetchActivities();
+  }, [fetchActivities]);
+
+  // Keep the feed current when Socket.IO is unavailable or reconnecting.
+  useEffect(() => {
+    const refreshInterval = window.setInterval(() => {
+      fetchActivities(false);
+    }, 10000);
+
+    return () => window.clearInterval(refreshInterval);
   }, [fetchActivities]);
 
   // Real-time socket sync: slide new activity in directly without reload
